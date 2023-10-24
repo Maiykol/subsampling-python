@@ -1,1 +1,3 @@
-# subsampling-python
+# DAZER
+## DAtaset siZe Effect estimatoR
+
