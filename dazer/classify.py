@@ -18,7 +18,7 @@ class Classifier:
         self.X_test = X_test
         self.y_test = y_test
         
-    def train_test_random_forest(self, ratio, random_state=101, param_grid={}, n_jobs=-1, model_path=''):
+    def train_test_random_forest(self,  param_grid={}, cv=10, n_jobs=-1, model_path='', verbose=1, scoring='f1', random_state=101):
         # random forest
         
         if param_grid == {}:
@@ -28,29 +28,41 @@ class Classifier:
                         'class_weight': ['balanced'],
                         'min_samples_split': [2, 4, 8],
                         'min_samples_leaf': [1, 2, 4, 8],
-                        'n_estimators': [10, 100, 250, 500, 750, 1000]
+                        'n_estimators': [10, 100, 250, 500, 750, 1000],
+                        'random_state': random_state
                     }
             
         rf = RandomForestClassifier()
-        model = GridSearchCV(estimator = rf, param_grid = param_grid, cv = 10, n_jobs = -1, verbose = 1)
-        model.fit(self.X_train, self.y_train)
-        
-        y_pred = model.predict(self.X_test)
-        clrep = classification_report(self.y_test, y_pred, target_names=None, output_dict=True)
+        model = self.train(rf, param_grid = param_grid, cv = cv, n_jobs = n_jobs, verbose = verbose, scoring=scoring)
+        y_pred = self.test(model)
+        evals = self.eval_pred(y_pred)
         
         if model_path:
             Path(model_path).mkdir(parents=True, exist_ok=True)
             joblib.dump(model, model_path)
 
-        return model, {'n_samples_train': len(self.X_train), 
+        return model, evals
+    
+    
+    def train(self, model, param_grid={}, cv=10, n_jobs=-1, verbose = 1, scoring='f1'):
+        model = GridSearchCV(estimator = model, param_grid = param_grid, cv = cv, n_jobs = n_jobs, verbose = verbose, scoring=scoring)
+        model.fit(self.X_train, self.y_train)
+        return model
+    
+    
+    def test(self, model):
+        return model.predict(self.X_test)
+    
+    
+    def eval_pred(self, y_pred):
+       clrep = classification_report(self.y_test, y_pred, target_names=None, output_dict=True)
+       return {'n_samples_train': len(self.X_train), 
                 'n_samples_test': len(self.X_test), 
                 'accuracy': clrep['accuracy'],
                 'f1': clrep['1']['f1-score'],
                 'precision': clrep['1']['precision'],
                 'recall': clrep['1']['recall'],
                 'TNR': clrep['0']['recall'],
-                'ratio': ratio,
-                'random_state': random_state,
                 }
         
         
