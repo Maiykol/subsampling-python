@@ -1,20 +1,19 @@
 import numpy as np
 import numpy.random as npr
+import pandas as pd
 
 
 class Subsampler:
     
-    def __init__(self, df_data, column_target, columns_keep_ratio, allowed_deviation):
+    def __init__(self, df_data, columns_keep_ratio, allowed_deviation):
 
-        df_ratio = df_data[columns_keep_ratio + [column_target]]
-        df_ratio = df_ratio.dropna(subset=[column_target])  # remove entries in target column with NaN
+        # df_ratio = df_ratio.dropna(subset=[column_target])  # remove entries in target column with NaN
         
         self.df_data = df_data  # complete input data
-        self.df_ratio = df_ratio  # the dataframe with the columns in which to keep the ratio
-        self.column_target = column_target  # the column to predict
+        self.df_ratio = df_data[columns_keep_ratio]  # the dataframe with the columns in which to keep the ratio
         self.allowed_deviation = allowed_deviation  # the allowed deviation from the ratio in the subsampled dataframe in the columns 'columns_keep_ratio' from 0 to 1
-        # self.test_size = test_size  
-        
+        self.categorical_columns = self.df_ratio.columns[~self.df_ratio.columns.isin(self.df_ratio._get_numeric_data().columns)]
+
         # attributes to be filled by methods
         self._test_df = None  # contains test data, created by 'extract_test' if test_size > 0
 
@@ -23,14 +22,15 @@ class Subsampler:
         
         
     def _preprocess(self):
-        # make all columns numerical
-        for col in self.df_ratio:
-            if self.df_ratio[col].dtype not in ['float64', 'int64', 'bool']:
-                self.df_ratio[col] = self.column_encode_category_as_numerical(self.df_ratio[col])
+        # make all columns numerical, now done by one hot encoding
+        # for col in self.df_ratio:
+        #     if self.df_ratio[col].dtype not in ['float64', 'int64', 'bool']:
+        #         self.df_ratio[col] = self.column_encode_category_as_numerical(self.df_ratio[col])
                 
         # normalize columns
         for col in self.df_ratio:
-            self.df_ratio[col] = self.column_normalize(self.df_ratio[col])
+            if self.df_ratio[col].dtype not in ['float64', 'int64', 'bool']:
+                self.df_ratio[col] = self.column_normalize(self.df_ratio[col])
             
     
     def extract_test(self, test_size=.2, random_state=101):
@@ -64,18 +64,19 @@ class Subsampler:
         npr.seed(random_state)
         # subsample each label category inidividually to keep intrinsic ratios
         indices = set()
-        for target_category in self.df_ratio[self.column_target].unique():
-            df_target_category = self.df_ratio[self.df_ratio[self.column_target]==target_category]
+        
+        # use one hot encoding to calculate the distribution of the categorical features
+        df_ratio_one_hot_encoded = self.df_ratio.drop(self.categorical_columns, axis=1).join(pd.get_dummies(self.df_ratio[self.categorical_columns]))
+        
+        df_mean_orig = df_ratio_one_hot_encoded.mean()
+        df_subsampled = df_ratio_one_hot_encoded.sample(frac=subsample_factor, replace=False, random_state=random_state)
 
-            df_mean_orig = self.df_ratio.mean()
-            df_subsampled = df_target_category.sample(frac=subsample_factor, replace=False, random_state=random_state)
-
-            # check for allowed divergence
-            for col, col_mean in df_subsampled.drop(self.column_target, axis=1).mean().items():
-                if np.abs(df_mean_orig[col] - col_mean) > self.allowed_deviation:
-                    raise Exception(f'Could not find subsample with seed {random_state} due to deviation in column {col}.')
-                
-            indices |= set(df_subsampled.index)
+        # check for allowed divergence
+        for col, col_mean in df_subsampled.mean().items():
+            if np.abs(df_mean_orig[col] - col_mean) > self.allowed_deviation:
+                raise Exception(f'Could not find subsample with seed {random_state} due to deviation in column {col}.')
+            
+        indices |= set(df_subsampled.index)
 
         df_subsampled = self.df_data[self.df_data.index.isin(indices)]
 
