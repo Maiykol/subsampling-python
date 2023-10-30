@@ -3,6 +3,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import classification_report
 from pathlib import Path
 import joblib
+import os
 # from sklearn.inspection import permutation_importance
 import pandas as pd
 
@@ -47,7 +48,7 @@ class Classifier:
         evals = self.eval_pred(y_pred)
         
         if model_path:
-            Path(model_path).mkdir(parents=True, exist_ok=True)
+            Path(os.sep.join(model_path.split(os.sep)[:-1])).mkdir(parents=True, exist_ok=True)
             joblib.dump(model, model_path)
 
         return model, evals
