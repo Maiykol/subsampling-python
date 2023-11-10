@@ -6,7 +6,7 @@ import joblib
 import os
 # from sklearn.inspection import permutation_importance
 import pandas as pd
-
+from dazer import utils
 
 
 class Classifier:
@@ -14,6 +14,9 @@ class Classifier:
     def __init__(self, X_train, y_train, X_test, y_test):
        
         self.label_encodings = {}
+        
+        X_test = X_test.copy()
+        X_train = X_train.copy()
         
         # encode categorical columns
         categorical_columns = X_train.columns[~X_test.columns.isin(X_test._get_numeric_data().columns)]
@@ -66,6 +69,7 @@ class Classifier:
     
     def eval_pred(self, y_pred):
        clrep = classification_report(self.y_test, y_pred, target_names=None, output_dict=True)
+       print(clrep)
        return {'n_samples_train': len(self.X_train), 
                 'n_samples_test': len(self.X_test), 
                 'accuracy': clrep['accuracy'],
@@ -90,8 +94,24 @@ class Classifier:
 
         df['model'] = df['model_path'].map(lambda x: x.split('/')[-1])
         return df
+    
+
+    def classifier_prediction_evaluation(self, models):
+        prediction_evaluation_list = []
+        for model in models:
+            y_pred = model.predict(self.X_test)
+            evaluation = utils.evaluate_prediction(self.y_test, y_pred)
+            prediction_evaluation_list.append(evaluation)
+        return prediction_evaluation_list
+    
+    def simulate_random_classifier_prediction_evaluation(self, n_models, random_state=101):
         
+        random_evaluation_list = utils.random_classifier_prediction_evaluation(n_models, self.y_test, len(self.X_test), random_state)
         
+        return random_evaluation_list
+        
+    
+    
     # def permutation_test_random_forest(self, model_path, ratio, random_state=101):
     #     # random forest
     #     model = joblib.load(model_path)
