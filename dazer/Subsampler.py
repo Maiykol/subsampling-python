@@ -6,13 +6,15 @@ import logging
 
 class Subsampler:
     
-    def __init__(self, df_data, columns_keep_ratio, allowed_deviation=.2):
+    def __init__(self, df_data, columns_keep_ratio=[], allowed_deviation=.2):
 
         # df_ratio = df_ratio.dropna(subset=[column_target])  # remove entries in target column with NaN
         
         self.df_data = df_data  # complete input data
         self.df_ratio = df_data[columns_keep_ratio]  # the dataframe with the columns in which to keep the ratio
         self.allowed_deviation = allowed_deviation  # the allowed deviation from the ratio in the subsampled dataframe in the columns 'columns_keep_ratio' from 0 to 1
+        
+        # get the categorical columns to create dummy columns for ratio comparison. bool columns will not be in the categorical columns and will be converted to integer columns in the preprocessing
         self.categorical_columns = self.df_ratio.columns[~self.df_ratio.columns.isin(self.df_ratio._get_numeric_data().columns)]
         
         # df to compare mean deviation against when subsampling
@@ -24,11 +26,20 @@ class Subsampler:
         # init steps
         self._preprocess()
         
+        
+    def _bool_to_int_columns(self):
+        # normalize columns
+        for col in self.df_ratio:
+            if self.df_ratio[col].dtype in ['bool']:
+                self.df_ratio.loc[:, col] = self.df_ratio[col].map(int)
+                
+        
     def _normalize_numerical_columns(self):
         # normalize columns
         for col in self.df_ratio:
-            if self.df_ratio[col].dtype in ['float64', 'int64', 'bool']:
+            if self.df_ratio[col].dtype in ['float64', 'int64']:
                 self.df_ratio.loc[:, col] = self.column_normalize(self.df_ratio[col])
+                
                 
     def _make_mean_reference(self):
         df = self.df_ratio
@@ -40,6 +51,9 @@ class Subsampler:
         
         
     def _preprocess(self):
+        # convert bool columns to numerical
+        self._bool_to_int_columns()
+        # normalize numerical columns
         self._normalize_numerical_columns()
         # important to make mean reference after normalization
         self._make_mean_reference()
