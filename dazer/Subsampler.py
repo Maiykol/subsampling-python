@@ -125,7 +125,7 @@ class Subsampler:
         for col, col_mean in df_subsampled.mean().items():
             deviation = np.abs(self.df_mean_orig[col] - col_mean)
             deviation_list.append({'col': col, 'deviation': deviation})
-        self.deviation_list = deviation_list
+        self._deviation_list = deviation_list
         return deviation_list
     
     

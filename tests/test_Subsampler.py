@@ -48,6 +48,18 @@ class Testing(unittest.TestCase):
         
         df_test = subsampler.extract_test(.2, random_state=2)
         self.assertTrue(df_test is None)
+    
+        
+    def test_subsampling_get_deviation_list(self):
+        df = sns.load_dataset('penguins', data_home=self.test_dir)
+        subsampler = Subsampler(df, ['body_mass_g'], .06)
+        
+        _ = subsampler.extract_test(.4, random_state=4)
+        _ = subsampler.subsample(.4, random_state=4)
+        
+        devialtion_list = subsampler.get_deviation_list()
+        
+        self.assertTrue(round(devialtion_list[0]['deviation'], 5) == round(0.01643383149231098, 5))
         
             
         
