@@ -22,7 +22,9 @@ class Subsampler:
 
         # attributes to be filled by methods
         self._test_df = None  # contains test data, created by 'extract_test' if test_size > 0
-
+        
+        self._deviation_list = []
+        
         # init steps
         self._preprocess()
         
@@ -102,8 +104,9 @@ class Subsampler:
         df_subsampled = df_ratio_one_hot_encoded.sample(frac=subsample_factor, replace=False, random_state=random_state)
 
         # check for allowed divergence
-        for col, col_mean in df_subsampled.mean().items():
-            deviation = np.abs(self.df_mean_orig[col] - col_mean)
+        deviation_list = self.calculate_deviations(df_subsampled)
+        for deviation_dict in deviation_list:
+            col, deviation = deviation_dict['col'], deviation_dict['deviation']
             if deviation > self.allowed_deviation:
                 message = f'Could not find subsample with seed {random_state} due to mean deviation {deviation} in column {col}.'
                 if raise_exception:
@@ -113,11 +116,22 @@ class Subsampler:
                     return None
             
         indices = set(df_subsampled.index)
-
         df_subsampled = self.df_data[self.df_data.index.isin(indices)]
-
         return df_subsampled
-   
+    
+    
+    def calculate_deviations(self, df_subsampled):
+        deviation_list = []
+        for col, col_mean in df_subsampled.mean().items():
+            deviation = np.abs(self.df_mean_orig[col] - col_mean)
+            deviation_list.append({'col': col, 'deviation': deviation})
+        self.deviation_list = deviation_list
+        return deviation_list
+    
+    
+    def get_deviation_list(self):
+        return self._deviation_list
+
     
     @staticmethod
     def column_normalize(col):
