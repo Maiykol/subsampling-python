@@ -10,8 +10,8 @@ class Subsampler:
 
         # df_ratio = df_ratio.dropna(subset=[column_target])  # remove entries in target column with NaN
         
-        self.df_data = df_data  # complete input data
-        self.df_ratio = df_data[columns_keep_ratio]  # the dataframe with the columns in which to keep the ratio
+        self.df_data = df_data.copy()  # complete input data
+        self.df_ratio = self.df_data[columns_keep_ratio]  # the dataframe with the columns in which to keep the ratio
         self.allowed_deviation = allowed_deviation  # the allowed deviation from the ratio in the subsampled dataframe in the columns 'columns_keep_ratio' from 0 to 1
         
         # get the categorical columns to create dummy columns for ratio comparison. bool columns will not be in the categorical columns and will be converted to integer columns in the preprocessing
