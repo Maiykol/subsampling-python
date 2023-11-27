@@ -104,6 +104,7 @@ class Classifier:
             prediction_evaluation_list.append(evaluation)
         return prediction_evaluation_list
     
+    
     def simulate_random_classifier_prediction_evaluation(self, n_models, random_state=101):
         
         random_evaluation_list = utils.random_classifier_prediction_evaluation(n_models, self.y_test, len(self.X_test), random_state)

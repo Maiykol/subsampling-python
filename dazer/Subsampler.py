@@ -6,7 +6,7 @@ import logging
 
 class Subsampler:
     
-    def __init__(self, df_data, columns_keep_ratio=[], allowed_deviation=.2):
+    def __init__(self, df_data, columns_keep_ratio=[], allowed_deviation=.2, allow_zero_occurrence=False):
 
         # df_ratio = df_ratio.dropna(subset=[column_target])  # remove entries in target column with NaN
         
@@ -24,6 +24,11 @@ class Subsampler:
         self._test_df = None  # contains test data, created by 'extract_test' if test_size > 0
         
         self._deviation_list = []
+        
+        # whether to allow 0 occurrences of a value in subsampled data, e.g. complete removal of this value due to subsampling
+        self.allow_zero_occurrence = allow_zero_occurrence
+        
+        self._column_separator = '$$$$$$&&&&&&'
         
         # init steps
         self._preprocess()
@@ -47,7 +52,7 @@ class Subsampler:
         df = self.df_ratio
         
         if len(self.categorical_columns):
-            df = df.drop(self.categorical_columns, axis=1).join(pd.get_dummies(df[self.categorical_columns]))
+            df = df.drop(self.categorical_columns, axis=1).join(pd.get_dummies(df[self.categorical_columns],  prefix_sep=self._column_separator))
             
         self.df_mean_orig = df.mean()
         
@@ -98,17 +103,31 @@ class Subsampler:
         
         # use one hot encoding to calculate the distribution of the categorical features
         if len(self.categorical_columns):
-            df_ratio_one_hot_encoded = self.df_ratio.drop(self.categorical_columns, axis=1).join(pd.get_dummies(self.df_ratio[self.categorical_columns]))
+            df_ratio_one_hot_encoded = self.df_ratio.drop(self.categorical_columns, axis=1).join(pd.get_dummies(self.df_ratio[self.categorical_columns], prefix_sep=self._column_separator))
         else:
             df_ratio_one_hot_encoded = self.df_ratio
         df_subsampled = df_ratio_one_hot_encoded.sample(frac=subsample_factor, replace=False, random_state=random_state)
+        
+        if self.allow_zero_occurrence and len(self.categorical_columns):
+            # relevant only for categorical columns
+            for col in df_subsampled:
+                if col not in self.df_ratio:
+                    # categorical columns have appendix based on value and are thus not in the columns_keep_ratio list
+                    if not df_subsampled[col].any():
+                        column, value = col.split(self._column_separator)
+                        message = f'Could not find subsample with seed {random_state} due to zero occcurrences of {value} in column {column}.'
+                        if raise_exception:
+                            raise Exception(message)
+                        else:
+                            logging.warning(message)
+                            return None
 
         # check for allowed divergence
         deviation_list = self.calculate_deviations(df_subsampled)
         for deviation_dict in deviation_list:
             col, deviation = deviation_dict['col'], deviation_dict['deviation']
             if deviation > self.allowed_deviation:
-                message = f'Could not find subsample with seed {random_state} due to mean deviation {deviation} in column {col}.'
+                message = f'Could not find subsample with seed {random_state} due to mean deviation {deviation} in column {col}. Allowed deviation is set to {self.allowed_deviation}.'
                 if raise_exception:
                     raise Exception(message)
                 else:

@@ -30,7 +30,7 @@ class Testing(unittest.TestCase):
     def test_Subsampler(self):
         
         df = sns.load_dataset('penguins', data_home=self.test_dir)
-        subsampler = Subsampler(df, ['body_mass_g'], .07)
+        subsampler = Subsampler(df, ['body_mass_g'], .07, True)
         
         df_test = subsampler.extract_test(.2, random_state=2)
         df_train = subsampler.subsample(.4, random_state=3)
@@ -44,7 +44,7 @@ class Testing(unittest.TestCase):
         
     def test_subsampling_deviation(self):
         df = sns.load_dataset('penguins', data_home=self.test_dir)
-        subsampler = Subsampler(df, ['body_mass_g'], .02)
+        subsampler = Subsampler(df, ['body_mass_g'], .02, True)
         
         df_test = subsampler.extract_test(.2, random_state=2)
         self.assertTrue(df_test is None)
@@ -52,7 +52,7 @@ class Testing(unittest.TestCase):
         
     def test_subsampling_get_deviation_list(self):
         df = sns.load_dataset('penguins', data_home=self.test_dir)
-        subsampler = Subsampler(df, ['body_mass_g'], .06)
+        subsampler = Subsampler(df, ['body_mass_g'], .06, True)
         
         _ = subsampler.extract_test(.4, random_state=4)
         _ = subsampler.subsample(.4, random_state=4)
@@ -60,6 +60,15 @@ class Testing(unittest.TestCase):
         devialtion_list = subsampler.get_deviation_list()
         
         self.assertTrue(round(devialtion_list[0]['deviation'], 5) == round(0.01643383149231098, 5))
+        
+        
+    def test_subsampling_allow_zero_occurrences(self):
+        df = sns.load_dataset('penguins', data_home=self.test_dir)
+        subsampler = Subsampler(df, ['body_mass_g', 'island', 'species'], 1, True)
+        
+        df_train = subsampler.subsample(.01, random_state=4)
+        
+        self.assertTrue(df_train is None)
         
             
         
