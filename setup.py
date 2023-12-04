@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='dazer',
-    version='0.1.17',
+    version='0.1.18',
     author='Maiykol',
     author_email='michael.hartung@uni-hamburg.de',
     packages=['dazer'],
@@ -14,7 +14,8 @@ setup(
     long_description_content_type='text/markdown',
     install_requires=[
         "pandas==2.1.1",
-        "scikit-learn==1.3.1"
+        "scikit-learn==1.3.1",
+        "xgboost==2.0.2"
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

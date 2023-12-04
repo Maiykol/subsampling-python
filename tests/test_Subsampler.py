@@ -62,15 +62,11 @@ class Testing(unittest.TestCase):
         self.assertTrue(round(devialtion_list[0]['deviation'], 5) == round(0.01643383149231098, 5))
         
         
-    def test_subsampling_allow_zero_occurrences(self):
+    def test_subsampling_allow_zero_occurrence(self):
         df = sns.load_dataset('penguins', data_home=self.test_dir)
         subsampler = Subsampler(df, ['body_mass_g', 'island', 'species'], 1, True)
         
         df_train = subsampler.subsample(.01, random_state=4)
         
         self.assertTrue(df_train is None)
-        
-            
-        
-            
-        
+

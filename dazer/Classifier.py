@@ -7,6 +7,7 @@ import os
 # from sklearn.inspection import permutation_importance
 import pandas as pd
 from dazer import utils
+from xgboost import XGBClassifier
 
 
 class Classifier:
@@ -31,22 +32,19 @@ class Classifier:
         self.y_test = y_test
         
         
-    def train_test_random_forest(self,  param_grid={}, cv=10, n_jobs=-1, model_path='', verbose=1, scoring='f1', random_state=101):
-        # random forest
+    @staticmethod
+    def get_model_from_string(model_string: str):
+        if model_string == 'rf':
+            return RandomForestClassifier()
+        elif model_string == 'xgb':
+            return XGBClassifier(objective='binary:logistic')
         
-        if param_grid == {}:
-            param_grid = {
-                        'bootstrap': [True],
-                        'max_depth': [1, 2, 5, 10, 50, None],
-                        'class_weight': ['balanced'],
-                        'min_samples_split': [2, 4, 8],
-                        'min_samples_leaf': [1, 2, 4, 8],
-                        'n_estimators': [10, 100, 250, 500, 750, 1000],
-                        'random_state': [random_state]
-                    }
-            
-        rf = RandomForestClassifier()
-        model = self.train(rf, param_grid = param_grid, cv = cv, n_jobs = n_jobs, verbose = verbose, scoring=scoring)
+    
+    def train_test(self, model_string: str,  param_grid={}, cv=10, n_jobs=-1, model_path='', verbose=1, scoring='f1'):
+        classifier = self.get_model_from_string(model_string)
+        model = self.train(classifier, param_grid=param_grid, cv=cv,
+                           n_jobs=n_jobs, verbose=verbose, scoring=scoring)
+        
         y_pred = self.test(model)
         evals = self.eval_pred(y_pred)
         
@@ -69,7 +67,6 @@ class Classifier:
     
     def eval_pred(self, y_pred):
        clrep = classification_report(self.y_test, y_pred, target_names=None, output_dict=True)
-       print(clrep)
        return {'n_samples_train': len(self.X_train), 
                 'n_samples_test': len(self.X_test), 
                 'accuracy': clrep['accuracy'],
