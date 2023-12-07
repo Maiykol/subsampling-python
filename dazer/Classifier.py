@@ -32,7 +32,7 @@ class Classifier:
         
         
     @staticmethod
-    def get_model_from_string(model_string: str, random_state=101, hidden_layer_sizes=(5, 2), solver='lbfgs', alpha=1e-5, kernel='rbf', C=1, gamma=2, **_):
+    def get_model_from_string(model_string: str, random_state=101, hidden_layer_sizes=(10, 5), solver='lbfgs', alpha=1e-5, kernel='rbf', C=1, gamma=2, **_):
         if model_string == 'rf':
             return RandomForestClassifier()
         elif model_string == 'xgb':
