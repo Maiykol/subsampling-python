@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='dazer',
-    version='0.1.21',
+    version='0.1.22',
     author='Maiykol',
     author_email='michael.hartung@uni-hamburg.de',
     packages=['dazer'],
