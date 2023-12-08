@@ -66,7 +66,7 @@ class Subsampler:
         self._make_mean_reference()
             
     
-    def extract_test(self, test_size=.2, random_state=101):
+    def extract_test(self, test_size=.2, random_state=101, raise_exception=False):
         """_summary_
 
         Args:
@@ -87,7 +87,8 @@ class Subsampler:
         if test_size == 0:
             return pd.DataFrame(columns=self.df_data.columns)
         # subsample with equal data distributions
-        self._test_df = self.subsample(test_size, random_state=random_state)
+        self._test_df = self.subsample(
+            test_size, random_state=random_state, raise_exception=raise_exception)
         if self._test_df is None:
             return None
         
@@ -150,7 +151,7 @@ class Subsampler:
     
     def get_deviation_list(self):
         return self._deviation_list
-
+    
     
     @staticmethod
     def column_normalize(col):
@@ -160,4 +161,5 @@ class Subsampler:
             # all 0s
             return col
         return (col - col_min) / (col_max - col_min)
+    
 

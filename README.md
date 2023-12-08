@@ -1,6 +1,6 @@
 # DAZER (DAtaset siZe Effect estimatoR)
 
-## Class Subsampler with examples
+## Class Subsampler
 The 'Subsampler' class serves to subsample proportions of the data. While doing so, it is able to preserve the distribution of values in selected features (columns_keep_ratio). <br />
 Additionally, it offers the functionality to extract a test dataset. Samples in this dataset will be excluded from following subsamples.
 
@@ -31,7 +31,7 @@ df_train_2 = subsampler.subsample(subsample_factor=.2, random_state=101)
 df_train_3 = subsampler.subsample(subsample_factor=.3, random_state=101)
 ```
 
-## Class Classifier with examples
+## Class Classifier
 
 ### prepare data for training and testing
 
@@ -77,6 +77,15 @@ model, evaluation = classifier.train_test('svc', random_state=101, scoring='f1',
 ```python
 classifier = dazer.Classifier(X_train, y_train, X_test, y_test)
 model, evaluation = classifier.train_test('rf', random_state=101, model_path='models/model_1.joblib', scoring='f1')
+```
+
+
+## Utils
+
+Useful high level wrappers incorporating the dazer functionalities.
+
+```python
+test_dict, train_dict = dazer.subsample_iterative(df, columns_keep_ratio=[], allowed_deviation=.2, test_size=.2, random_states=[101, 102, 103, 104, 105], attempts=10000, ratios=[.2, .4, .6, .8, 1]):
 ```
 
 ## Run unittests
