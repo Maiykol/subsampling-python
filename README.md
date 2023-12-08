@@ -47,21 +47,21 @@ X_train = df_train_1.drop([target_column], axis=1)
 
 ```python
 classifier = dazer.Classifier(X_train, y_train, X_test, y_test)
-model, evaluation = classifier.train_test('rf', random_state=101, scoring='f1')
+model, evaluation = classifier.train_test('rf', scoring='f1')
 ```
 
 ### model training and evaluation (Multi-layer Perceptron)
 
 ```python
 classifier = dazer.Classifier(X_train, y_train, X_test, y_test)
-model, evaluation = classifier.train_test('mlp', random_state=101, scoring='f1', param_model={'solver': 'lbfgs', 'hidden_layer_sizes': (10, 5), 'random_state': 101, 'alpha': 1e-5, 'C': 1})
+model, evaluation = classifier.train_test('mlp', scoring='f1', param_model={'solver': 'lbfgs', 'hidden_layer_sizes': (10, 5), 'random_state': 101, 'alpha': 1e-5, 'C': 1})
 ```
 
 ### model training and evaluation (Support Vector Classification with rbf kernel)
 
 ```python
 classifier = dazer.Classifier(X_train, y_train, X_test, y_test)
-model, evaluation = classifier.train_test('svc', random_state=101, scoring='f1', param_model={'kernel': 'rbf', 'C': 1, 'gamma': 2, 'random_state': 101})
+model, evaluation = classifier.train_test('svc', scoring='f1', param_model={'kernel': 'rbf', 'C': 1, 'gamma': 2, 'random_state': 101})
 ```
 
 ### available models:
@@ -76,7 +76,7 @@ model, evaluation = classifier.train_test('svc', random_state=101, scoring='f1',
 
 ```python
 classifier = dazer.Classifier(X_train, y_train, X_test, y_test)
-model, evaluation = classifier.train_test('rf', random_state=101, model_path='models/model_1.joblib', scoring='f1')
+model, evaluation = classifier.train_test('rf', model_path='models/model_1.joblib', scoring='f1')
 ```
 
 

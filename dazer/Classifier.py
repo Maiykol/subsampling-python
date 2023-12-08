@@ -32,7 +32,7 @@ class Classifier:
         
         
     @staticmethod
-    def get_model_from_string(model_string: str, random_state=101, hidden_layer_sizes=(10, 5), solver='lbfgs', alpha=1e-5, kernel='rbf', C=1, gamma=2, **_):
+    def get_model_from_string(model_string: str):
         if model_string == 'rf':
             return RandomForestClassifier()
         elif model_string == 'xgb':
@@ -40,17 +40,17 @@ class Classifier:
             return XGBClassifier(objective='binary:logistic')
         elif model_string == 'mlp':
             from sklearn.neural_network import MLPClassifier
-            return MLPClassifier(solver=solver, alpha=alpha, hidden_layer_sizes=hidden_layer_sizes, random_state=random_state)
+            return MLPClassifier()
         elif model_string == 'gnb':
             from sklearn.naive_bayes import GaussianNB
             return GaussianNB()
         elif model_string == 'svc':
             from sklearn.svm import SVC
-            return SVC(kernel=kernel, gamma=gamma, C=C, random_state=random_state)
+            return SVC()
             
     
-    def train_test(self, model_string: str, param_model={},  param_grid={}, cv=10, n_jobs=-1, model_path='', verbose=1, scoring='f1'):
-        classifier = self.get_model_from_string(model_string, **param_model)
+    def train_test(self, model_string: str, param_grid={}, cv=10, n_jobs=-1, model_path='', verbose=1, scoring='f1'):
+        classifier = self.get_model_from_string(model_string)
         model = self.train(classifier, param_grid=param_grid, cv=cv,
                            n_jobs=n_jobs, verbose=verbose, scoring=scoring)
         
