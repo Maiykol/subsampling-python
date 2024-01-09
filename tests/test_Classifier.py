@@ -5,7 +5,7 @@ import seaborn as sns
 import numpy as np
 import tempfile
 import shutil
-from sklearn.datasets import make_classification
+from sklearn.datasets import make_classification, make_regression
 from sklearn.model_selection import train_test_split
 
 class Testing(unittest.TestCase):
@@ -47,7 +47,7 @@ class Testing(unittest.TestCase):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
         classifier = dazer.Classifier(pd.DataFrame(X_train), y_train, pd.DataFrame(X_test), y_test)
         model, evaluation = classifier.train_test(
-            'xgb', scoring='f1')
+            'xgb', scoring='f1', param_grid={'random_state': [101]})
         self.assertTrue(round(evaluation['accuracy'], 4) == 0.8182)
         
         
@@ -57,7 +57,8 @@ class Testing(unittest.TestCase):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
         classifier = dazer.Classifier(pd.DataFrame(X_train), y_train, pd.DataFrame(X_test), y_test)
         model, evaluation = classifier.train_test(
-            'mlp', scoring='f1')
+            'mlp', scoring='f1', param_grid={'random_state': [101]})
+        print(evaluation['accuracy'])
         self.assertTrue(round(evaluation['accuracy'], 4) == 0.8485)
         
         
@@ -68,9 +69,10 @@ class Testing(unittest.TestCase):
             X, y, test_size=0.33, random_state=42)
         classifier = dazer.Classifier(pd.DataFrame(
             X_train), y_train, pd.DataFrame(X_test), y_test)
-        model, evaluation = classifier.train_test('mlp', scoring='f1', param_model={
-                                                  'solver': 'adam', 'hidden_layer_sizes': (2, 1), 'this_parameter_does_not_exist': None})
-        self.assertTrue(round(evaluation['accuracy'], 4) == 0.4545)
+        model, evaluation = classifier.train_test('mlp', scoring='f1', param_grid={
+                                                  'solver': ['adam'], 'hidden_layer_sizes': (2, 1), 'random_state': [101]})
+        print(evaluation['accuracy'])
+        self.assertTrue(round(evaluation['accuracy'], 4) == 0.5455)
 
 
     def test_Classifier_gnb(self):
@@ -80,7 +82,8 @@ class Testing(unittest.TestCase):
             X, y, test_size=0.33, random_state=42)
         classifier = dazer.Classifier(pd.DataFrame(
             X_train), y_train, pd.DataFrame(X_test), y_test)
-        model, evaluation = classifier.train_test('gnb', scoring='f1')
+        model, evaluation = classifier.train_test(
+            'gnb', scoring='f1')
         self.assertTrue(round(evaluation['accuracy'], 4) == 0.8788)
     
     
@@ -91,8 +94,9 @@ class Testing(unittest.TestCase):
             X, y, test_size=0.33, random_state=42)
         classifier = dazer.Classifier(pd.DataFrame(
             X_train), y_train, pd.DataFrame(X_test), y_test)
-        model, evaluation = classifier.train_test('svc', scoring='f1')
-        self.assertTrue(round(evaluation['accuracy'], 4) == 0.4545)
+        model, evaluation = classifier.train_test(
+            'svc', scoring='f1', param_grid={'random_state': [101]})
+        self.assertTrue(round(evaluation['accuracy'], 4) == 0.8788)
         
         
     def test_Classifier_svc_parameters(self):
@@ -102,6 +106,54 @@ class Testing(unittest.TestCase):
             X, y, test_size=0.33, random_state=42)
         classifier = dazer.Classifier(pd.DataFrame(
             X_train), y_train, pd.DataFrame(X_test), y_test)
-        model, evaluation = classifier.train_test('svc', scoring='f1', param_model={
-                                                  'kernel': 'linear', 'C':0.025, 'this_parameter_does_not_exist': None})
+        model, evaluation = classifier.train_test('svc', scoring='f1', param_grid={
+                                                  'kernel': ['linear'], 'C': [0.025], 'random_state': [101]})
         self.assertTrue(round(evaluation['accuracy'], 4) == 0.8788)
+
+
+    def test_Regressor_rf(self):
+        X, y = make_regression(n_samples=1000, n_features=10, noise=1, random_state=444)
+        target_column = 'y'
+        df = pd.DataFrame(X)
+        df = df.join(pd.Series(y, name=target_column))
+
+        subsampler = dazer.Subsampler(df, columns_keep_ratio=[target_column], allowed_deviation=.2)
+
+        df_test = subsampler.extract_test(test_size=.2, random_state=101)
+        df_train = subsampler.subsample(subsample_factor=.1, random_state=101)
+
+        y_test = df_test[target_column]
+        X_test = df_test.drop([target_column], axis=1)
+
+        y_train = df_train[target_column]
+        X_train = df_train.drop([target_column], axis=1)
+
+        regressor = dazer.Regressor(X_train, y_train, X_test, y_test)
+        model, evaluation = regressor.train_test('rf', scoring='r2')
+        
+        self.assertTrue(round(evaluation['r2'], 4) == 0.7071)
+        
+        
+    def test_Regressor_svr(self):
+        X, y = make_regression(
+            n_samples=1000, n_features=10, noise=1, random_state=444)
+        target_column = 'y'
+        df = pd.DataFrame(X)
+        df = df.join(pd.Series(y, name=target_column))
+
+        subsampler = dazer.Subsampler(df, columns_keep_ratio=[
+                                      target_column], allowed_deviation=.2)
+
+        df_test = subsampler.extract_test(test_size=.2, random_state=101)
+        df_train = subsampler.subsample(subsample_factor=.1, random_state=101)
+
+        y_test = df_test[target_column]
+        X_test = df_test.drop([target_column], axis=1)
+
+        y_train = df_train[target_column]
+        X_train = df_train.drop([target_column], axis=1)
+
+        regressor = dazer.Regressor(X_train, y_train, X_test, y_test)
+        model, evaluation = regressor.train_test('svr', scoring='r2')
+
+        self.assertTrue(round(evaluation['explained_variance'], 4) == 0.0239)
