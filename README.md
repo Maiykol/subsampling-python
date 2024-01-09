@@ -34,7 +34,7 @@ df_train_3 = subsampler.subsample(subsample_factor=.3, random_state=101)
 
 ## Class Classifier
 
-currently supported models are:
+The class 'Classifier' contains wrappers for a number of classification models. Currently supported models are:
 - 'rf' (<a href="https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html" target="_blank">Random Forest</a>)
 - 'xgb' (<a href="https://xgboost.readthedocs.io/en/stable/" target="_blank">XGBoost</a>)
 - 'mlp' (<a href="https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html" target="_blank">Multi-layer Perceptron</a>)
@@ -122,11 +122,18 @@ X_train = df_train.drop([target_column], axis=1)
 ### model training and evaluation (example: Random Forest)
 
 ```python
-classifier = dazer.Regressor(X_train, y_train, X_test, y_test)
-model, evaluation = classifier.train_test('rf', scoring='max_error')
+regressor = dazer.Regressor(X_train, y_train, X_test, y_test)
+model, evaluation = regressor.train_test('rf', scoring='max_error')
 ```
 
 For the possible scoring options, refer to https://scikit-learn.org/stable/modules/model_evaluation.html.
+
+### save model immediately as .joblib object
+
+```python
+regressor = dazer.Regressor(X_train, y_train, X_test, y_test)
+model, evaluation = regressor.train_test('rf', model_path='models/model_1.joblib', scoring='max_error')
+```
 
 
 
