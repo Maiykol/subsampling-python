@@ -1,8 +1,8 @@
 import unittest
 import dazer
 import pandas as pd
-import seaborn as sns
 import numpy as np
+import seaborn as sns
 import tempfile
 import shutil
 from sklearn.datasets import make_classification, make_regression
@@ -21,8 +21,8 @@ class Testing(unittest.TestCase):
         # Remove the directory after the test
         shutil.rmtree(self.test_dir)
         return super().tearDown()
-
-
+    
+    
     def test_Classifier_random_forest(self):
         X, y = make_classification(
             n_samples=100, n_features=10, random_state=444)
@@ -157,3 +157,28 @@ class Testing(unittest.TestCase):
         model, evaluation = regressor.train_test('svr', scoring='r2')
 
         self.assertTrue(round(evaluation['explained_variance'], 4) == 0.0239)
+
+
+    def test_one_class(self):
+        target_column = 'y'
+
+        df = sns.load_dataset('penguins', data_home=self.test_dir)
+        df = df.dropna()
+        df['y'] = df['species'] == 'Adelie'
+        
+        subsampler = dazer.Subsampler(df, ['body_mass_g', 'y'], .07, True)
+
+        df_test = subsampler.extract_test(.2, random_state=2)
+        df_train = subsampler.subsample(.4, random_state=3)
+        
+        y_test = df_test[target_column]
+        X_test = df_test.drop([target_column], axis=1)
+
+        y_train = df_train[target_column]
+        X_train = df_train.drop([target_column], axis=1)
+
+        classifier = dazer.Classifier(X_train, y_train, X_test, y_test)
+        
+        model, evaluation = classifier.train_test('rf', scoring='f1')
+        
+        self.assertTrue(True)

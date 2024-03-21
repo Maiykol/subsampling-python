@@ -75,6 +75,9 @@ class Classifier:
     
     
     def eval_pred(self, y_pred):
+        # convert to numerical values
+        y_pred = [int(x) for x in y_pred]
+        self.y_test = [int(x) for x in self.y_test]
         clrep = classification_report(self.y_test, y_pred, target_names=None, output_dict=True)
        
         if '1' not in clrep:
@@ -86,9 +89,9 @@ class Classifier:
                 'n_samples_test': len(self.X_test), 
                 'accuracy': clrep['accuracy'],
                 'f1': clrep['1']['f1-score'] if '1' in clrep else None,
-                'precision': clrep['1']['precision' if '1' in clrep else None],
+                'precision': clrep['1']['precision'] if '1' in clrep else None,
                 'recall': clrep['1']['recall'] if '1' in clrep else None,
-                'TNR': clrep['0']['recall' if '0' in clrep else None],
+                'TNR': clrep['0']['recall'] if '0' in clrep else None,
                 }
         
         
