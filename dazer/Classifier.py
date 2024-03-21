@@ -75,14 +75,20 @@ class Classifier:
     
     
     def eval_pred(self, y_pred):
-       clrep = classification_report(self.y_test, y_pred, target_names=None, output_dict=True)
-       return {'n_samples_train': len(self.X_train), 
+        clrep = classification_report(self.y_test, y_pred, target_names=None, output_dict=True)
+       
+        if '1' not in clrep:
+           print('Warning: No positive class in test set')
+        if '0' not in clrep:
+            print('Warning: No negative class in test set')
+       
+        return {'n_samples_train': len(self.X_train), 
                 'n_samples_test': len(self.X_test), 
                 'accuracy': clrep['accuracy'],
-                'f1': clrep['1']['f1-score'],
-                'precision': clrep['1']['precision'],
-                'recall': clrep['1']['recall'],
-                'TNR': clrep['0']['recall'],
+                'f1': clrep['1']['f1-score'] if '1' in clrep else None,
+                'precision': clrep['1']['precision' if '1' in clrep else None],
+                'recall': clrep['1']['recall'] if '1' in clrep else None,
+                'TNR': clrep['0']['recall' if '0' in clrep else None],
                 }
         
         

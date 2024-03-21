@@ -3,7 +3,7 @@ import numpy.random as npr
 import dazer
 
 
-def subsample_iterative(df, columns_keep_ratio=[], allowed_deviation=.2, test_size=.2, random_states=[101, 102, 103, 104, 105], attempts=10000, ratios=np.arange(0, 1, .1)):
+def subsample_iterative(df, columns_keep_ratio=[], allowed_deviation=.2, test_size=.2, random_states=[101, 102, 103, 104, 105], attempts=10000, ratios=np.arange(.1, 1.1, .1)):
     """
      Iteratively subsamples a data frame to test data. The subsample is done by randomly choosing a subset of columns from the data frame and then re - sampling the data with a variety of random numbers.
      
