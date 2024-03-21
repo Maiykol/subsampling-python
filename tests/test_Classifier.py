@@ -164,7 +164,7 @@ class Testing(unittest.TestCase):
 
         df = sns.load_dataset('penguins', data_home=self.test_dir)
         df = df.dropna()
-        df['y'] = df['species'] == 'Adelie'
+        df[target_column] = df['species'] == 'Adelie'
         
         subsampler = dazer.Subsampler(df, ['body_mass_g', 'y'], .07, True)
 
@@ -181,4 +181,4 @@ class Testing(unittest.TestCase):
         
         model, evaluation = classifier.train_test('rf', scoring='f1')
         
-        self.assertTrue(True)
+        self.assertTrue(evaluation['recall'] == 1.0)

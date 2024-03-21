@@ -1,5 +1,37 @@
 # DAZER (DAtaset siZe Effect estimatoR)
 
+
+## Example
+
+```python
+from dazer import Subsampler 
+import seaborn as sns
+
+target_column = 'y'
+
+df = sns.load_dataset('penguins', data_home=self.test_dir)
+df = df.dropna()
+df[target_column] = df['species'] == 'Adelie'
+
+subsampler = dazer.Subsampler(df, ['body_mass_g', 'y'], .07, True)
+
+df_test = subsampler.extract_test(.2, random_state=2)
+df_train = subsampler.subsample(.4, random_state=3)
+
+y_test = df_test[target_column]
+X_test = df_test.drop([target_column], axis=1)
+
+y_train = df_train[target_column]
+X_train = df_train.drop([target_column], axis=1)
+
+classifier = dazer.Classifier(X_train, y_train, X_test, y_test)
+
+model, evaluation = classifier.train_test('rf', scoring='f1')
+
+print(evaluation)
+```
+
+
 ## Class Subsampler
 The 'Subsampler' class serves to subsample proportions of the data. While doing so, it is able to preserve the distribution of values in selected features (columns_keep_ratio). <br />
 Additionally, it offers the functionality to extract a test dataset. Samples in this dataset will be excluded from following subsamples.
